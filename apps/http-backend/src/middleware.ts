@@ -8,13 +8,19 @@ export function middleware(req: Request, res: Response, next: NextFunction): voi
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: string | number };
 
-    if (decoded && decoded.userId) {
+    if (decoded) {
       req.userId = decoded.userId;
       next();
+ 
     } else {
-      res.status(401).json({ message: "Unauthorized" });
+      res.status(401).json({
+        message: "Unauthorized" 
+      });
     }
+``
   } catch (error) {
-    res.status(401).json({ message: "Unauthorized" });
+    res.status(401).json({ 
+      message: "Unauthorized" 
+    });
   }
 }
