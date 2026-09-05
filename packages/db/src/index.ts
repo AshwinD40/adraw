@@ -1,10 +1,26 @@
-import { PrismaClient } from "./generated/prisma/client";
+import { DATABASE_URL } from "@repo/backend-common/config";
+import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
+// Use centralized DATABASE_URL
 const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: DATABASE_URL,
 });
 
-export const prismaClient = new PrismaClient({ adapter });
+// Singleton Prisma Client pattern to avoid connection pool exhaustion in development/monorepos
+declare global {
+  var __prismaClient: PrismaClient | undefined;
+}
 
-export * from "./generated/prisma/client";
+export const prismaClient: PrismaClient =
+  globalThis.__prismaClient ||
+  new PrismaClient({
+    adapter,
+    log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
+  });
+
+if (process.env.NODE_ENV !== "production") {
+  globalThis.__prismaClient = prismaClient;
+}
+
+export * from "@prisma/client";
